@@ -6,8 +6,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.zotov.nbkitesttask.dto.UserRequest;
@@ -16,15 +18,16 @@ import ru.zotov.nbkitesttask.entity.User;
 import ru.zotov.nbkitesttask.repository.UserRepository;
 import ru.zotov.nbkitesttask.utils.UserUtils;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class UserControllerTest {
 
-    @Autowired
+    @SpyBean
     UserRepository userRepository;
-
 
     @BeforeAll
     public static void setUp() {
@@ -117,13 +120,44 @@ class UserControllerTest {
 
         RestAssured
                 .given()
-                .log().all()
+                    .log().all()
                 .when()
-                .delete("/user/%s".formatted(user.getId()))
+                    .delete("/user/%s".formatted(user.getId()))
                 .then()
-                .statusCode(HttpStatus.NO_CONTENT.value());
+                    .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertFalse(userRepository.findById(user.getId()).isPresent());
+    }
+
+    @Test
+    void userNotFound() {
+        Mockito.when(userRepository.findById(333L)).thenReturn(Optional.empty());
+
+        RestAssured
+                .given()
+                    .log().all()
+                .when()
+                    .get("/user/%s".formatted(333L))
+                .then()
+                    .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+    @Test
+    void emailAlreadyExists() {
+        String testEmail = "testEmail@mail.com";
+        UserRequest userRequest = UserUtils.produceUserRequest();
+        userRequest.setEmail(testEmail);
+        Mockito.when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(UserUtils.produceUser()));
+
+        RestAssured
+                .given()
+                    .log().all()
+                .when()
+                    .body(userRequest)
+                    .contentType(ContentType.JSON)
+                    .post("/user")
+                .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
     }
 
     private User addTestUser() {

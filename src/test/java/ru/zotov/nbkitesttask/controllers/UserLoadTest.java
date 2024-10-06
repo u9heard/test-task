@@ -8,9 +8,13 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.zotov.nbkitesttask.dto.UserRequest;
 import ru.zotov.nbkitesttask.dto.UserResponse;
 
@@ -23,14 +27,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserLoadTest {
     private final int SELECT_COUNT = 1_000_000;
     private final int CONNECTIONS_COUNT = 100;
     private final int USERS_COUNT = 100_000;
 
-    private static final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     @BeforeAll
     static void setUp() {
@@ -51,7 +56,7 @@ public class UserLoadTest {
                 long requestStartTime = System.currentTimeMillis();
 
                 UserRequest userRequest = produceRandomUserRequest();
-                restTemplate.postForEntity("http://localhost:8888/user", userRequest, UserResponse.class);
+                restTemplate.postForEntity("/user", userRequest, UserResponse.class);
 
                 responseTimes.add(System.currentTimeMillis() - requestStartTime);
             });
@@ -79,7 +84,7 @@ public class UserLoadTest {
             int userId = random.nextInt(USERS_COUNT-1)+1;
             executor.submit(() -> {
                 long requestStartTime = System.currentTimeMillis();
-                restTemplate.getForEntity("http://localhost:8888/user/" + userId, String.class);
+                restTemplate.getForEntity("/user/" + userId, String.class);
                 long requestEndTime = System.currentTimeMillis();
 
                 responseTimes.add(requestEndTime - requestStartTime);
