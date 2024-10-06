@@ -2,7 +2,6 @@ package ru.zotov.nbkitesttask.services;
 
 import ru.zotov.nbkitesttask.dto.UserRequest;
 import ru.zotov.nbkitesttask.dto.UserResponse;
-import ru.zotov.nbkitesttask.entity.User;
 
 public interface UserService {
     /**

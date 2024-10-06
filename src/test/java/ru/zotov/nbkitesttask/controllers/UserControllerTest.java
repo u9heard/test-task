@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.zotov.nbkitesttask.dto.UserRequest;
@@ -17,7 +16,6 @@ import ru.zotov.nbkitesttask.entity.User;
 import ru.zotov.nbkitesttask.repository.UserRepository;
 import ru.zotov.nbkitesttask.utils.UserUtils;
 
-import static io.restassured.RestAssured.when;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
