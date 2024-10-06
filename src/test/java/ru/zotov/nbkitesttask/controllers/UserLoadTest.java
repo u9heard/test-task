@@ -63,10 +63,10 @@ public class UserLoadTest {
             });
         }
 
-        long totalEndTime = System.currentTimeMillis();
-
         executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.HOURS);
+        executor.awaitTermination(1, TimeUnit.MINUTES);
+
+        long totalEndTime = System.currentTimeMillis();
 
         printReport(totalEndTime - totalStartTime, responseTimes);
     }
@@ -75,7 +75,7 @@ public class UserLoadTest {
     @Order(2)
     @DisplayName("Select 1000000 users through 100 connections(threads)")
     public void getUsersLoadTest() throws InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(100);
+        ExecutorService executor = Executors.newFixedThreadPool(CONNECTIONS_COUNT);
         List<Long> responseTimes = Collections.synchronizedList(new ArrayList<>());
         Random random = new Random();
 
@@ -92,10 +92,11 @@ public class UserLoadTest {
             });
         }
 
+        executor.shutdown();
+        executor.awaitTermination(2, TimeUnit.MINUTES);
+
         long totalEndTime = System.currentTimeMillis();
 
-        executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.HOURS);
         printReport(totalEndTime - totalStartTime, responseTimes);
     }
 
@@ -125,15 +126,10 @@ public class UserLoadTest {
     private void printReport(long totalTime, List<Long> responseTimes) {
         Collections.sort(responseTimes);
 
-        long median = getMedian(responseTimes);
-        long percentile95 = get95Percentile(responseTimes);
-        long percentile99 = get99Percentile(responseTimes);
-
         System.out.println("-----Result-----");
-        System.out.println(responseTimes.size());
         System.out.printf("Total time (ms): %d%n", totalTime);
-        System.out.printf("Median (ms): %d%n", median);
-        System.out.printf("95 Percentile (ms): %d%n", percentile95);
-        System.out.printf("99 Percentile (ms): %d%n", percentile99);
+        System.out.printf("Median (ms): %d%n", getMedian(responseTimes));
+        System.out.printf("95 Percentile (ms): %d%n", get95Percentile(responseTimes));
+        System.out.printf("99 Percentile (ms): %d%n", get99Percentile(responseTimes));
     }
 }
